@@ -51,7 +51,7 @@
 | **Tokens Saída (Mediana)**| **1.022,0** | **256,0** | **312,0** | Quase idêntico (-69,5% vs E0) |
 | **Tokens Entrada (Média)**| **66,0** | **444,0** ($p_1+p_2$) | **465,0** ($p_1=325, p_2=140$) | Overhead de contexto preservado |
 | **Tokens Totais (Média)** | **1.509,4** | **717,4** | **787,0** | -47,9% vs E0 |
-| **Taxa de Grounding** | **0% (0/5)** | **100% (5/5)** (nos números) | **100% (5/5)** (na falha da ferramenta) | Ambos ancorados no retorno |
+| **Resultado / Fundamentação** | **0% (0/5)** (Recusa / manual não ancorado) | **100% (5/5)** (Ancoragem factual nos números) | **0% dados** (Sensores offline) — **100% (5/5) tratamento adequado da falha** | Separação clara entre dado factual e tratamento de erro |
 
 * Arquivo de dados brutos: [`e1_c_evidence.json`](./e1_c_evidence.json)
 * Script utilizado: [`e1_challenger.py`](./e1_challenger.py)
@@ -80,7 +80,7 @@ O experimento E1-C revelou uma **dissociação estrutural** entre Eficiência e 
 
 ```text
 Eficácia (Factualidade / Grounding)  ---> Depende do DADO retornado pela ferramenta
-Eficiência (Previsibilidade / SLA)   ---> Depende da ESTRUTURA DO PROTOCOLO de tool calling
+Eficiência (Previsibilidade Temporal) ---> Depende da ESTRUTURA DO PROTOCOLO de tool calling
 ```
 
 * **Por que E0 é caótico?**  
@@ -93,5 +93,5 @@ Eficiência (Previsibilidade / SLA)   ---> Depende da ESTRUTURA DO PROTOCOLO de 
 ## 7. Conclusão Final do Ciclo E1 / E1-C
 
 1. A hipótese original de E1 foi **refinada**: o ganho de velocidade e previsibilidade não veio do valor numérico fornecido, mas da **imposição arquitetural do protocolo de ferramentas**, que elimina a prolixidade compensatória do LLM.
-2. A ferramenta em si é necessária para a **qualidade do dado** (sem ela, temos 0% de grounding factual em E0 e E1-C); contudo, a **previsibilidade de SLA e contenção de geração** é um produto da **engenharia de contexto e fluxo**.
+2. A ferramenta em si é necessária para a **qualidade do dado** (sem ela, temos 0% de grounding factual em E0 e E1-C); contudo, a **menor dispersão de tempo e a contenção de geração observadas** são produtos da **engenharia de contexto e protocolo**.
 3. Esse achado encerra o ciclo de Tool Use e estabelece a ponte perfeita para **E2 — Context Engineering**.

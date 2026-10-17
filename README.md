@@ -33,16 +33,20 @@ I compared three execution strategies across 5 alternated runs each ($N=5$):
 I measured wall-clock execution time, generated output tokens, total resource consumption (including multi-step prompt overhead), and whether the agent grounded its response in evidence.
 
 ### 💡 What I Discovered
-The main observation was that the way an agent approaches a task directly affects its execution time, response length, and ability to handle available evidence:
+I started with a simple question: can an AI agent become faster and more consistent without changing to a larger model?
 
-1. **Why E0 was erratic:** Without tools, the generalist LLM realized it lacked real-time system data. Under default sampling, it frequently tried to **compensate for its inability to act** by writing encyclopedic troubleshooting tutorials for Linux, macOS, and Windows. In our runs, E0 fluctuated from **20.62 s** (a brief refusal) to **282.11 s** (> 4.5 minutes, generating 4,030 tokens), with high variance ($\pm 104.10\text{ s}$).
-2. **Why E1 was consistent:** With a tool, the agent assumed a structured dispatcher role: it requested the function and summarized the returned numbers. In this test, latency dropped to an average of **21.11 s** (~79% reduction), output tokens dropped by ~81%, and factual grounding was 100%.
+To investigate this, I compared an agent answering directly with versions that used a tool to obtain information about the system.
+
+The main observation was that the way an agent approaches a task can affect its execution time, response length, and ability to handle available evidence:
+
+1. **Why E0 was erratic:** Without tools, the generalist LLM realized it lacked real-time system metrics. Under default sampling, it frequently tried to compensate for its inability to act by writing encyclopedic troubleshooting tutorials for Linux, macOS, and Windows. In our runs, E0 fluctuated from **20.62 s** (a brief refusal) to **282.11 s** (> 4.5 minutes, generating 4,030 tokens), with high variance ($\pm 104.10\text{ s}$).
+2. **Why E1 was consistent:** With a tool, the agent assumed a structured dispatcher role: it requested the function and summarized the returned numbers. In this test, latency dropped to an average of **21.11 s** (~79% reduction), output tokens dropped by ~81% ($1,443.4 \to 273.4$ tokens), and factual grounding was 100%.
 3. **What the Challenger test (E1-C) showed:** Even when the tool **failed and returned an error message with null values**, the agent's response remained relatively short (~322 output tokens) and consistent in execution time (26.91 s, std dev $\pm 3.16\text{ s}$). It did not revert to the 4,000-token tutorials of E0.
 
 That distinction matters: **a short response is not necessarily a factually correct response, and handling an error appropriately is not the same as obtaining accurate telemetry data.** In these runs, the tool protocol helped bound generation and keep latency predictable, while the tool data determined whether the response was factually grounded.
 
 ### What I Cannot Yet Claim (Honest Engineering Limitations)
-* **Small Sample Size ($N=5$):** This was a preliminary micro-benchmark designed for a focused laboratory session. Tail percentiles (like P95) have broad confidence intervals with $N=5$. The numbers describe this specific run, not an SLA guarantee or a universal law.
+* **Small Sample Size ($N=5$):** This was a preliminary micro-benchmark designed for a focused laboratory session. Tail percentiles (like P95) have broad confidence intervals with $N=5$. The numbers describe this specific run, not a universal performance guarantee.
 * **Task Bias:** The evaluation prompt specifically targets real-time environment metrics, where an LLM physically cannot answer factually without external access. In static reasoning or purely creative tasks, tool overhead might not yield token savings.
 * **Sampling Parameters:** Inferences used default Ollama sampling temperatures (~0.8). Setting temperature to 0.0 would reduce baseline variance, though observational data indicates that protocol containment remains a dominant factor.
 
@@ -65,14 +69,14 @@ Identical prompt tested across all conditions:
 | Metric | E0 (Baseline Direct) | E1 (Tool with Mock Data) | E1-C (Challenger: Tool with Null Data) | Observed Impact in This Test |
 | :--- | :--- | :--- | :--- | :--- |
 | **Mean Latency** | **100.13 s** | **21.11 s** | **26.91 s** | **~79% latency reduction in E1** |
-| **Median Latency** | **69.85 s** | **19.83 s** | **25.57 s** | **Substantially faster response** |
-| **Min / Max Latency** | **20.62 s / 282.11 s** | **17.37 s / 25.54 s** | **24.87 s / 32.47 s** | **Narrower dynamic range** |
-| **Std. Deviation (Latency)**| **± 104.10 s** | **± 3.42 s** | **± 3.16 s** | **Lower observed variance** |
-| **P95 Latency (Linear Interp.)\*** | **241.26 s** | **25.19 s** | **31.24 s** | **Damped tail latency in sample** |
+| **Median Latency** | **69.85 s** | **19.83 s** | **25.57 s** | **Substantially faster response in sample** |
+| **Min / Max Latency** | **20.62 s / 282.11 s** | **17.37 s / 25.54 s** | **24.87 s / 32.47 s** | **Narrower dynamic range in sample** |
+| **Std. Deviation (Latency)**| **± 104.10 s** | **± 3.42 s** | **± 3.16 s** | **Lower observed variance in sample** |
+| **P95 Latency (Linear Interp.)\*** | **241.26 s** | **25.19 s** | **31.24 s** | **Lower observed tail latency in sample** |
 | **Mean Output Tokens** | **1,443.4** | **273.4** | **322.0** | **~81% output token reduction in E1** |
 | **Mean Input Tokens (Multi-step)**| **66.0** | **444.0** ($p_1=325, p_2=119$) | **465.0** ($p_1=325, p_2=140$) | +378 tokens tool schema overhead |
 | **Mean Total Tokens** | **1,509.4** | **717.4** | **787.0** | **-52.5% net token savings in E1** |
-| **Evidence Grounding / Outcome** | **0% (0/5)** (Refusal / ungrounded OS manual) | **100% (5/5)** (Correctly grounded on mock data) | **0% data** (Sensors offline) — **100% (5/5) graceful failure handling** | Clear separation of grounding vs error handling |
+| **Evidence Grounding / Outcome** | **0% (0/5)** (Refusal / ungrounded OS manual) | **100% (5/5)** (Correctly grounded on mock data) | **0% data** (Sensors offline) — **100% (5/5) graceful failure handling** | Clear separation of factual grounding vs error handling |
 
 \* *P95 calculated via continuous linear interpolation between adjacent ranks: $C = 0.95 \times (N - 1)$.*
 
