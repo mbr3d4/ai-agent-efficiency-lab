@@ -5,7 +5,7 @@
 [![Evidence Integrity](https://img.shields.io/badge/Tests-100%25%20Passing-brightgreen.svg)](tests/test_evidence_integrity.py)
 [![Methodology](https://img.shields.io/badge/Protocol-Popperian%20Challenger-orange.svg)](AGENT_INSTRUCTIONS.md)
 
-**Can we make an AI agent significantly faster, more factual, and resource-efficient by changing how it works, rather than simply choosing a bigger model?**
+**Can we make an AI agent faster, more consistent, and more resource-efficient by changing how it works, rather than simply choosing a bigger model?**
 
 That was the central question behind this experiment.
 
@@ -14,57 +14,44 @@ That was the central question behind this experiment.
 ## 📖 Layer 1: Understanding the Problem, Experiment, and Learning
 
 ### Why I Built This
-When an AI agent is asked to solve a real-world task, it frequently exhibits three common failure modes:
-1. It takes too long to respond.
-2. It generates sprawling, verbose text.
-3. It fails to ground its conclusions in verified facts.
+AI agents can produce excessively long answers, take too long to complete a task, or fail to support their conclusions with verified evidence.
 
-When that happens, the standard industry reflex is often to **upgrade to a larger, more expensive model**. But that is not the only option — and in many production environments, it merely makes mistakes and latency more expensive.
+When that happens, upgrading to a larger, more expensive model is one possible solution. But it is not the only one — and in production, larger models often simply make latency, compute costs, and errors more expensive.
 
-I wanted to treat **agent instructions, context structure, and tool-interaction protocols as primary engineering variables**. Could a disciplined architecture make a local open-weights model perform with predictable latency, minimal token waste, and 100% factual grounding?
+I wanted to investigate whether changes in the agent's instructions, context structure, and tool-interaction strategy could improve its efficiency and the quality of its results.
 
 ### What I Did
-I designed an empirical micro-benchmark evaluating an open-source model (`Qwen3.8-27B-GGUF` running locally on an NVIDIA RTX 4070 SUPER 12 GB via Ollama) on an identical environment query:
+I ran a controlled empirical micro-benchmark evaluating an open-source model (`Qwen3.8-27B-GGUF` running locally on an NVIDIA RTX 4070 SUPER 12 GB via Ollama) on an identical system telemetry query:
 > *"Qual é o status atual da CPU, memória e temperatura do sistema?"* (*"What is the current CPU, memory, and temperature of the system?"*)
 
-I compared three controlled execution strategies:
+I compared three execution strategies across 5 alternated runs each ($N=5$):
 
-* **E0 — Baseline (Direct LLM):** The model is prompted directly with no tools available. Because it lacks direct access to the host OS, it must rely solely on its pre-trained weights.
-* **E1 — Tool-Assisted Execution:** The agent is equipped with a deterministic tool schema (`get_system_status`). It executes a two-step cycle: decide to call the tool $\to$ invoke mock telemetry $\to$ synthesize a factual answer.
-* **E1-C — Popperian Challenger (Falsification):** A deliberate attempt to disprove our initial conclusion. *Did E1 become faster and concise only because the tool returned specific numbers (37% CPU, 61% RAM)?* To test this, the tool protocol was kept active, but the environment **injected a sensor failure** (returning `null` with an error message). The agent was forced to answer without data.
+* **E0 — Baseline (Direct LLM):** The model answered directly without access to tools. Lacking access to the host operating system, it had to rely purely on internal weights.
+* **E1 — Tool-Assisted Execution:** The agent was equipped with a deterministic tool schema (`get_system_status`). It executed a 2-step loop: decide to call the tool $\to$ receive mock telemetry $\to$ synthesize a factual answer.
+* **E1-C — Challenger (Falsification Test):** A deliberate attempt to test alternative explanations. *Did E1 become faster and more concise simply because it received specific numbers (37% CPU, 61% RAM, 54 °C)?* To test this, the tool schema remained active, but the environment **returned an error with null data** (simulating unavailable sensors). The agent was forced to respond without telemetry.
 
-Across 5 alternated runs per condition ($N=5$), I measured wall-clock execution time, generated output tokens, total resource consumption (including multi-step prompt overhead), and factual grounding.
+I measured wall-clock execution time, generated output tokens, total resource consumption (including multi-step prompt overhead), and whether the agent grounded its response in evidence.
 
-### What I Learned
-The runs revealed a fundamental **structural dissociation** in agent architectures:
+### 💡 What I Discovered
+The main observation was that the way an agent approaches a task directly affects its execution time, response length, and ability to handle available evidence:
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                          STRUCTURAL DISSOCIATION                       │
-├───────────────────────────────────┬────────────────────────────────────┤
-│ FACTUAL GROUNDING (Efficacy)      │ DEPENDS ON THE DATA RETURNED       │
-│                                   │ BY THE TOOL.                       │
-├───────────────────────────────────┼────────────────────────────────────┤
-│ LATENCY & VARIANCE (Efficiency)   │ DEPENDS ON THE PROTOCOL STRUCTURE  │
-│                                   │ OF THE TOOL INTERACTION.           │
-└───────────────────────────────────┴────────────────────────────────────┘
-```
+1. **Why E0 was erratic:** Without tools, the generalist LLM realized it lacked real-time system data. Under default sampling, it frequently tried to **compensate for its inability to act** by writing encyclopedic troubleshooting tutorials for Linux, macOS, and Windows. In our runs, E0 fluctuated from **20.62 s** (a brief refusal) to **282.11 s** (> 4.5 minutes, generating 4,030 tokens), with high variance ($\pm 104.10\text{ s}$).
+2. **Why E1 was consistent:** With a tool, the agent assumed a structured dispatcher role: it requested the function and summarized the returned numbers. In this test, latency dropped to an average of **21.11 s** (~79% reduction), output tokens dropped by ~81%, and factual grounding was 100%.
+3. **What the Challenger test (E1-C) showed:** Even when the tool **failed and returned an error message with null values**, the agent's response remained relatively short (~322 output tokens) and consistent in execution time (26.91 s, std dev $\pm 3.16\text{ s}$). It did not revert to the 4,000-token tutorials of E0.
 
-1. **Why E0 is chaotic:** Without tools, the generalist LLM realizes it lacks real-time data. Under default sampling, it attempts to **compensate for its inability to act** by writing encyclopedic troubleshooting tutorials for Linux, macOS, and Windows. In our runs, E0 fluctuated from **20.62 s** (a brief refusal) to **282.11 s** (> 4.5 minutes, generating 4,030 tokens), with an extreme standard deviation of $\pm 104.10\text{ s}$.
-2. **Why E1 is efficient:** With a tool, the agent transitions into a structured dispatcher role: it calls the function and summarizes the result. Latency dropped by ~78% (averaging 21.11 s), output generation dropped by ~81%, and factual grounding was 100%.
-3. **The Challenger Discovery (E1-C):** When the tool failed and returned `null`, **the model did NOT revert to the 4,000-token tutorial of E0**. It simply reported the sensor failure cleanly in ~322 tokens with nearly identical latency stability (26.91 s, standard deviation $\pm 3.16\text{ s}$).
-
-**Key Takeaway:** The data provides factual truth; but **the protocol itself acts as a syntactic shock absorber**, eliminating runaway generation and taming tail latency.
+That distinction matters: **a short response is not necessarily a factually correct response, and handling an error appropriately is not the same as obtaining accurate telemetry data.** In these runs, the tool protocol helped bound generation and keep latency predictable, while the tool data determined whether the response was factually grounded.
 
 ### What I Cannot Yet Claim (Honest Engineering Limitations)
-* **Sample Size ($N=5$):** $N=5$ is an exploratory micro-benchmark. Tail metrics like P95 have wide confidence intervals in small samples. The findings are valid as descriptive observations, not universal population statistics.
-* **Task Bias:** The evaluation prompt specifically requires external host state. In tasks involving purely static reasoning or creative writing, tool overhead may not yield token savings.
-* **Sampling Parameters:** Inferences used default Ollama sampling temperatures (~0.8). Setting temperature to 0.0 would reduce baseline variance, though observational data confirms that protocol containment remains the dominant factor.
+* **Small Sample Size ($N=5$):** This was a preliminary micro-benchmark designed for a focused laboratory session. Tail percentiles (like P95) have broad confidence intervals with $N=5$. The numbers describe this specific run, not an SLA guarantee or a universal law.
+* **Task Bias:** The evaluation prompt specifically targets real-time environment metrics, where an LLM physically cannot answer factually without external access. In static reasoning or purely creative tasks, tool overhead might not yield token savings.
+* **Sampling Parameters:** Inferences used default Ollama sampling temperatures (~0.8). Setting temperature to 0.0 would reduce baseline variance, though observational data indicates that protocol containment remains a dominant factor.
 
 ### Why This Matters
-As I develop my AI Engineering portfolio, I approach agent systems with the same discipline used in Site Reliability Engineering (SRE) and distributed systems:
+As I develop my AI Engineering portfolio, I approach agent architectures with the same mindset I use in Site Reliability Engineering (SRE) and systems observability:
 
-> **Measure first. Compare controlled alternatives. Attempt to falsify (Popperian Challenger). Keep the raw evidence. Document the limitations.**
+> **Measure first. Compare controlled alternatives. Attempt to falsify (Challenger). Keep the raw evidence. Document the limitations.**
+
+This repository is a practical exploration of that mindset. The code, reports, and raw evidence files are fully accessible below for inspection and reproduction.
 
 ---
 
@@ -75,17 +62,17 @@ As I develop my AI Engineering portfolio, I approach agent systems with the same
 Identical prompt tested across all conditions:
 > *"Qual é o status atual da CPU, memória e temperatura do sistema?"*
 
-| Metric | E0 (Baseline Direct) | E1 (Tool with Mock Data) | E1-C (Challenger: Tool with Null Data) | Architectural Impact |
+| Metric | E0 (Baseline Direct) | E1 (Tool with Mock Data) | E1-C (Challenger: Tool with Null Data) | Observed Impact in This Test |
 | :--- | :--- | :--- | :--- | :--- |
-| **Mean Latency** | **100.13 s** | **21.11 s** | **26.91 s** | **~78% latency reduction** |
-| **Median Latency** | **69.85 s** | **19.83 s** | **25.57 s** | **Predictable response SLA** |
-| **Min / Max Latency** | **20.62 s / 282.11 s** | **17.37 s / 25.54 s** | **24.87 s / 32.47 s** | **Damped dynamic range** |
-| **Std. Deviation (Latency)**| **± 104.10 s** | **± 3.42 s** | **± 3.16 s** | **Elimination of long-tail chaos** |
-| **P95 Latency (Linear Interp.)\*** | **241.26 s** | **25.19 s** | **31.24 s** | **Guaranteed tail SLA** |
-| **Mean Output Tokens** | **1,443.4** | **273.4** | **322.0** | **~78% token reduction** |
-| **Mean Input Tokens (Multi-step)**| **66.0** | **444.0** ($p_1=325, p_2=119$) | **465.0** ($p_1=325, p_2=140$) | +378 tokens schema overhead |
-| **Mean Total Tokens** | **1,509.4** | **717.4** | **787.0** | **-52.5% net token savings** |
-| **Factual Grounding Rate** | **0% (0/5)** | **100% (5/5)** | **100% (5/5)** (grounded on error) | Strict adherence to evidence |
+| **Mean Latency** | **100.13 s** | **21.11 s** | **26.91 s** | **~79% latency reduction in E1** |
+| **Median Latency** | **69.85 s** | **19.83 s** | **25.57 s** | **Substantially faster response** |
+| **Min / Max Latency** | **20.62 s / 282.11 s** | **17.37 s / 25.54 s** | **24.87 s / 32.47 s** | **Narrower dynamic range** |
+| **Std. Deviation (Latency)**| **± 104.10 s** | **± 3.42 s** | **± 3.16 s** | **Lower observed variance** |
+| **P95 Latency (Linear Interp.)\*** | **241.26 s** | **25.19 s** | **31.24 s** | **Damped tail latency in sample** |
+| **Mean Output Tokens** | **1,443.4** | **273.4** | **322.0** | **~81% output token reduction in E1** |
+| **Mean Input Tokens (Multi-step)**| **66.0** | **444.0** ($p_1=325, p_2=119$) | **465.0** ($p_1=325, p_2=140$) | +378 tokens tool schema overhead |
+| **Mean Total Tokens** | **1,509.4** | **717.4** | **787.0** | **-52.5% net token savings in E1** |
+| **Evidence Grounding / Outcome** | **0% (0/5)** (Refusal / ungrounded OS manual) | **100% (5/5)** (Correctly grounded on mock data) | **0% data** (Sensors offline) — **100% (5/5) graceful failure handling** | Clear separation of grounding vs error handling |
 
 \* *P95 calculated via continuous linear interpolation between adjacent ranks: $C = 0.95 \times (N - 1)$.*
 
