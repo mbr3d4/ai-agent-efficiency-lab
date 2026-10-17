@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-09-12T14:29:30Z",
+  "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q2_K_XL",
+  "mock_ground_truth": {
+    "cpu": 37,
+    "memory": 61,
+    "temperature": 54
+  },
+  "e0": {
+    "latency_ms": 269273.7,
+    "llm_calls": 1,
+    "prompt_tokens": 66,
+    "output_tokens": 3772,
+    "factual_grounding": {
+      "has_cpu": false,
+      "has_memory": false,
+      "has_temperature": false,
+      "all_correct": false
+    },
+    "response": "Não consigo ver o status em tempo real do seu computador/servidor a partir desta conversa, porque não tenho acesso direto ao hardware ou aos processos do seu sistema. Para eu te ajudar com o valor atual, você precisa rodar alguns comandos no seu sistema e colar aqui a saída — ou me dizer qual é o sistema operacional (Linux, macOS, Windows).\n\n## No Linux\n\nAbra um terminal e rode:\n\n```bash\n# Uso de CPU / carga do sistema\ntop -bn1 | head -n 5\nuptime\n\n# Memória disponível e em uso\nfree -h\n\n# Temperatura dos sensores do sistema\nsensors\n\n# Ou, se não tiver o comando sensors:\ncat /sys/class/thermal/thermal_zone*/temp*\n```\n\nSe quiser uma saída mais compacta:\n\n```bash\necho \"=== CPU ===\"\ntop -bn1 | head -n 5\n\necho \"=== Carga do sistema ===\"\nuptime\n\necho \"=== Memória ===\"\nfree -h\n\necho \"=== Temperatura ===\"\nsensors 2>/dev/null || cat /sys/class/thermal/thermal_zone*/temp* 2>/dev/null || echo \"Sensores de temperatura não encontrados\"\n```\n\nEm algumas distros, se o comando `sensors` não existir:\n\n```bash\n# Debian/Ubuntu\nsudo apt install lm-sensors -y\nsudo sensors-detect\n\n# Fedora/RHEL\nsudo dnf install lm_sensors -y\nsudo sensors-detect\n```\n\n## No macOS\n\nA forma mais simples é abrir o **Monitor do Atividade** / **Activity Monitor**.\n\nNo terminal:\n\n```bash\n# CPU\ntop -l 1 | head -n 5\n\n# Memória\nvm_stat\n\n# Pressão de memória, útil para ver se está com falta de RAM\nmemory_pressure -d 2000\n```\n\nTemperatura no macOS não é tão fácil de obter pelos comandos padrão. Você pode usar aplicativos como **Stats**, **iStat Menus** ou outro monitor de hardware.\n\n## No Windows\n\n### Pelo Gerenciador de Tarefas\n\n1. Pressione `Ctrl + Shift + Esc`.\n2. Abra a aba **Performance**.\n3. Veja CPU, memória e, em alguns casos, GPU/dispositivos.\n\n### Pelo PowerShell\n\n```powershell\n# Uso aproximado da CPU em uma amostra rápida\nGet-Counter '\\Processor(_Total)\\% Processor Time' -SampleInterval 1 -Sample 1\n\n# Memória total e livre\nGet-CimInstance Win32_OperatingSystem | ForEach-Object {\n    [PSCustomObject]@{\n        Sistema       = $_.Name\n        MemoriaTotalGB = [math]::Round($_.TotalVisibleMemorySize / 1024 / 1024, 2)\n        MemoriaLivreGB = [math]::Round($_.FreePhysicalMemory / 1024 / 1024, 2)\n    }\n}\n```\n\nTemperatura no Windows normalmente exige um aplicativo dedicado, como:\n\n- **HWiNFO**\n- **Open Hardware Monitor**\n- **HWMonitor**\n- **AIDA64**\n- Em servidores, pode haver suporte via `ipmitool`, por exemplo:\n\n```bash\nsudo ipmitool sdr type=temperature\n```\n\n## Como interpretar os valores\n\n### CPU\n\n- Uso baixo/normal: depende da carga. Se estiver alto o tempo todo e você sentir lentidão, pode ser problema.\n- No Linux, a carga média importa em relação ao número de núcleos:\n\n```bash\nnproc\n```\n\nExemplo: se você tem 8 núcleos e a carga está em `2.5`, isso significa aproximadamente 31% do total disponível. Em geral:\n\n- `load < nproc`: saudável para muitas cargas\n- `load ≈ nproc`: sistema trabalhando perto da capacidade\n- `load > nproc` por muito tempo: pode haver lentidão ou processo pesado\n\n### Memória\n\nProcure principalmente a memória **disponível**, não apenas “livre”.\n\nNo Linux, o comando:\n\n```bash\nfree -h\n```\n\nmostra algo como:\n\n```text\n               total        used        free      shared  buff/cache   available\nMem:            15Gi       8.0Gi       2.0Gi     100Mi      4.0Gi       6.5Gi\n```\n\nNesse caso, o que mais importa é `available`. Se houver bastante memória disponível, está tudo bem.\n\nSe a memória disponível estiver baixa e você notar lentidão ou uso alto de swap, pode faltar RAM para os aplicativos em execução.\n\n### Temperatura\n\nOs valores seguros dependem do modelo da CPU/GPU e do sistema de refrigeração, mas uma referência geral:\n\n- **35–50 °C** em repouso: geralmente normal\n- **60–80 °C** sob carga: frequentemente aceitável\n- **85–90 °C+**: pode começar a reduzir desempenho dependendo do hardware\n- **95–100 °C+**: risco de thermal throttling ou desligamento por segurança\n\nSe os valores estiverem muito altos em repouso, vale checar ventoinhas, pastas térmicas, poeira e airflow.\n\n## Se você quiser uma resposta exata\n\nCole aqui a saída dos comandos do seu sistema operacional. Por exemplo:\n\n```text\nSistema: Ubuntu 24.04\nComandos executados:\ntop -bn1 | head -n 5\nfree -h\nsensors\ncat /sys/class/thermal/thermal_zone*/temp*\nSaída:\n...\n```\n\nE eu te digo se a CPU, memória e temperatura estão normais ou se há algum indício de problema."
+  },
+  "e1": {
+    "latency_ms": 24470.79,
+    "step1_latency_ms": 7056.3,
+    "step2_latency_ms": 17414.44,
+    "llm_calls": 2,
+    "tool_calls": 1,
+    "prompt_tokens": 444,
+    "output_tokens": 305,
+    "factual_grounding": {
+      "has_cpu": true,
+      "has_memory": true,
+      "has_temperature": true,
+      "all_correct": true
+    },
+    "response": "Aqui está o status atual do sistema:\n\n| Recurso | Valor |\n|---------|-------|\n| **CPU** | 37% de uso |\n| **Memória** | 61% ocupada |\n| **Temperatura** | 54 °C |\n\nO sistema parece estar operando de forma saudável, com carga moderada na CPU e memória dentro de limites normais. A temperatura também está em uma faixa segura (abaixo dos 70–80 °C típicos para a maioria das CPUs). Se quiser monitorar continuamente ou verificar outros parâmetros, é só pedir! 🖥️"
+  }
+}

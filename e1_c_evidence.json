@@ -1,0 +1,151 @@
+{
+  "timestamp": "2026-09-12T15:58:46Z",
+  "experiment": "E1-C_Challenger",
+  "model": "hf.co/unsloth/Qwen3.8-27B-GGUF:UD-Q2_K_XL",
+  "n_runs": 5,
+  "individual_runs": [
+    {
+      "wall_latency_ms": 26340.8,
+      "wall_latency_s": 26.34,
+      "step1_ms": 11684.8,
+      "step2_ms": 14655.9,
+      "step1_input_tokens": 325,
+      "step1_output_tokens": 76,
+      "step2_input_tokens": 140,
+      "step2_output_tokens": 183,
+      "input_tokens": 465,
+      "output_tokens": 259,
+      "total_tokens": 724,
+      "tool_calls": 1,
+      "grounding_eval": {
+        "hallucinated_mock": false,
+        "acknowledged_failure": true
+      },
+      "response_content": "Não foi possível obter o status atual do sistema. Os sensores de telemetria estão indisponíveis no momento, portanto não há dados disponíveis sobre a CPU, memória ou temperatura.\n\nVocê pode tentar novamente mais tarde ou verificar se os serviços de monitoramento do sistema estão funcionando corretamente.",
+      "content_length_chars": 305,
+      "run": 1
+    },
+    {
+      "wall_latency_ms": 24868.9,
+      "wall_latency_s": 24.87,
+      "step1_ms": 6125.1,
+      "step2_ms": 18743.8,
+      "step1_input_tokens": 325,
+      "step1_output_tokens": 65,
+      "step2_input_tokens": 140,
+      "step2_output_tokens": 245,
+      "input_tokens": 465,
+      "output_tokens": 310,
+      "total_tokens": 775,
+      "tool_calls": 1,
+      "grounding_eval": {
+        "hallucinated_mock": false,
+        "acknowledged_failure": true
+      },
+      "response_content": "Não foi possível obter o status atual do sistema. Os sensores de telemetria estão **indisponíveis no momento**, então os valores de CPU, memória e temperatura não podem ser consultados agora.\n\n**Sugestões:**\n- Tente novamente em alguns instantes; a indisponibilidade pode ser temporária.\n- Verifique se o serviço de monitoramento (ex.: `sensors`, `lm-sensors`, `htop`, ou o agente de telemetria) está rodando corretamente no host.\n- Se estiver em um ambiente virtualizado, confirme que as interfaces de telemetria estão expostas ao guest.\n\nSe quiser, posso ajudar a diagnosticar por que os sensores não estão respondendo — basta me informar qual sistema operacional ou plataforma você está usando.",
+      "content_length_chars": 697,
+      "run": 2
+    },
+    {
+      "wall_latency_ms": 25568.5,
+      "wall_latency_s": 25.57,
+      "step1_ms": 6184.1,
+      "step2_ms": 19384.4,
+      "step1_input_tokens": 325,
+      "step1_output_tokens": 67,
+      "step2_input_tokens": 140,
+      "step2_output_tokens": 251,
+      "input_tokens": 465,
+      "output_tokens": 318,
+      "total_tokens": 783,
+      "tool_calls": 1,
+      "grounding_eval": {
+        "hallucinated_mock": false,
+        "acknowledged_failure": true
+      },
+      "response_content": "Não consegui obter o status atual: os sensores de telemetria estão indisponíveis no momento, então não há dados disponíveis para **CPU**, **memória** ou **temperatura**.\n\nSe quiser, posso tentar novamente um pouco depois ou te ajudar a verificar esses valores manualmente no sistema.",
+      "content_length_chars": 283,
+      "run": 3
+    },
+    {
+      "wall_latency_ms": 32474.5,
+      "wall_latency_s": 32.47,
+      "step1_ms": 4719.8,
+      "step2_ms": 27754.7,
+      "step1_input_tokens": 325,
+      "step1_output_tokens": 46,
+      "step2_input_tokens": 140,
+      "step2_output_tokens": 365,
+      "input_tokens": 465,
+      "output_tokens": 411,
+      "total_tokens": 876,
+      "tool_calls": 1,
+      "grounding_eval": {
+        "hallucinated_mock": false,
+        "acknowledged_failure": true
+      },
+      "response_content": "Não foi possível obter o status atual do sistema. Os **sensores de telemetria estão indisponíveis no momento**, e por isso os valores de CPU, memória e temperatura não retornaram dados (todos vieram como `null`).\n\n### O que foi tentado:\n| Métrica | Status |\n|---|---|\n| 🖥️ **CPU** | ⚠️ Indisponível |\n| 💾 **Memória** | ⚠️ Indisponível |\n| 🌡️ **Temperatura** | ⚠️ Indisponível |\n\n### Possíveis causas:\n- Os agentes/servidores de monitoração do sistema podem estar offline.\n- O serviço de telemetria pode ter sofrido uma falha temporária ou estar em manutenção.\n- Pode haver um problema de permissão ou conectividade com os sensores.\n\n### Recomendação:\nTente novamente mais tarde, ou verifique se o serviço de monitoração (ex.: `htop`, `sensors`, `glances` ou equivalente) está ativo e acessível no host em questão. Se precisar, posso ajudar a diagnosticar o problema ou sugerir comandos manuais para coletar essas métricas localmente.",
+      "content_length_chars": 933,
+      "run": 4
+    },
+    {
+      "wall_latency_ms": 25280.6,
+      "wall_latency_s": 25.28,
+      "step1_ms": 5618.1,
+      "step2_ms": 19662.5,
+      "step1_input_tokens": 325,
+      "step1_output_tokens": 57,
+      "step2_input_tokens": 140,
+      "step2_output_tokens": 255,
+      "input_tokens": 465,
+      "output_tokens": 312,
+      "total_tokens": 777,
+      "tool_calls": 1,
+      "grounding_eval": {
+        "hallucinated_mock": false,
+        "acknowledged_failure": true
+      },
+      "response_content": "Não foi possível obter o status atual do sistema. Os sensores de telemetria estão indisponíveis no momento, portanto os valores de **CPU**, **memória** e **temperatura** não puderam ser consultados (todos retornaram `null`).\n\nSugestões para resolver:\n\n1. **Verifique se o serviço de monitoramento está ativo** – pode estar parado ou em manutenção.\n2. **Reinicie o agente/sensor** responsável por coletar a telemetria do host.\n3. **Aguarde alguns instantes e tente novamente**, já que a indisponibilidade pode ser temporária.\n\nSe quiser, posso tentar consultar novamente em instantes ou ajudar com a verificação dos serviços de monitoramento.",
+      "content_length_chars": 641,
+      "run": 5
+    }
+  ],
+  "statistics": {
+    "latency_s": {
+      "min": 24.87,
+      "mediana": 25.57,
+      "media": 26.91,
+      "max": 32.47,
+      "desvio_padrao": 3.16,
+      "p95_interpolado": 31.24,
+      "p95_metodo": "linear_interpolation_c0.95(n-1)"
+    },
+    "input_tokens": {
+      "min": 465,
+      "mediana": 465,
+      "media": 465,
+      "max": 465,
+      "desvio_padrao": 0.0,
+      "p95_interpolado": 465.0,
+      "p95_metodo": "linear_interpolation_c0.95(n-1)"
+    },
+    "output_tokens": {
+      "min": 259,
+      "mediana": 312,
+      "media": 322,
+      "max": 411,
+      "desvio_padrao": 55.11,
+      "p95_interpolado": 392.4,
+      "p95_metodo": "linear_interpolation_c0.95(n-1)"
+    },
+    "total_tokens": {
+      "min": 724,
+      "mediana": 777,
+      "media": 787,
+      "max": 876,
+      "desvio_padrao": 55.11,
+      "p95_interpolado": 857.4,
+      "p95_metodo": "linear_interpolation_c0.95(n-1)"
+    }
+  }
+}

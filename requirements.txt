@@ -1,0 +1,8 @@
+# AI Agent Efficiency Lab - Dependencies
+# Python >= 3.10 required
+
+# Runtime for local LLM inference
+ollama>=0.3.0
+
+# Offline test suite and verification
+pytest>=8.0.0
