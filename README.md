@@ -143,7 +143,7 @@ ai-agent-efficiency-lab/
 You can verify the mathematical and schema integrity of every reported metric directly from the raw recorded data in < 1 second using standard Python:
 
 ```bash
-git clone https://github.com/your-username/ai-agent-efficiency-lab.git
+git clone https://github.com/mbr3d4/ai-agent-efficiency-lab.git
 cd ai-agent-efficiency-lab
 python3 tests/test_evidence_integrity.py
 ```
